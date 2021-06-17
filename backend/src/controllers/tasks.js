@@ -1,29 +1,58 @@
-import {connect} from '../database'
-
+import { connect } from "../database";
 
 export const getTasks = async (req, res) => {
-    const db = await connect();
-    const [ rows ] = await db.query('SELECT * FROM tasks');
-    console.log(rows);
-    res.send('Hello World!!!');
-}
+  const connection = await connect();
+  const [rows] = await connection.execute("SELECT * FROM tasks");
+  res.json(rows);
+};
 
-export const getTask = (req, res) => {
-    res.send('Hello World!!!')
-}
+export const saveTask = async (req, res) => {
+  try {
+    const connection = await connect();
+    const [results] = await connection.execute(
+      "INSERT INTO tasks(title, description) VALUES (?, ?)",
+      [req.body.title, req.body.description]
+    );
 
-export const getTasksCount = (req, res) => {
-    res.send('Hello World!!!')
-}
+    const newUser = {
+      id: results.insertId,
+      ...req.body,
+    };
+    res.json(newUser);
+  } catch (error) {
+    console.error(error);
+  }
+};
 
-export const saveTask = (req, res) => {
-    res.send('Hello World!!!')
-}
+export const getTask = async (req, res) => {
+  const connection = await connect();
+  const rows = await connection.execute("SELECT * FROM tasks WHERE id = ?", [
+    req.params.id,
+  ]);
+  res.json(rows[0][0]);
+};
 
-export const deleteTask = (req, res) => {
-    res.send('Hello World!!!')
-}
+export const deleteTask = async (req, res) => {
+  const connection = await connect();
+  const result = await connection.execute("DELETE FROM tasks WHERE id = ?", [
+    req.params.id,
+  ]);
+  console.log(result);
 
-export const updateTask = (req, res) => {
-    res.send('Hello World!!!')
-}
+  res.sendStatus(204);
+};
+
+export const updateTask = async (req, res) => {
+  const connection = await connect();
+  await connection.query("UPDATE tasks SET ? WHERE id = ?", [
+    req.body,
+    req.params.id,
+  ]);
+  res.sendStatus(204);
+};
+
+export const getTasksCount = async (req, res) => {
+  const connection = await connect();
+  const [rows] = await connection.execute("SELECT COUNT(*) FROM tasks");
+  res.json(rows[0]["COUNT(*)"]);
+};

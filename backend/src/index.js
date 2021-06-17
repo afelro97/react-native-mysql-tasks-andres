@@ -1,4 +1,4 @@
 import app from './app'
 
-app.listen(5000)
-console.log("Server on port 5000")
+app.listen(app.get('port'))
+console.log('Server on port', app.get('port'))
